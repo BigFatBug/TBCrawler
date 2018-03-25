@@ -9,11 +9,6 @@ sys.path.append("../")
 from lib.utils import *
 from lib.config import *
 
-
-reload(sys)
-sys.setdefaultencoding('utf8')
-
-
 class SimpleAnalyzer:
     """ 简单的统计工具，根据商品评论的size_info来分析 """
 
@@ -34,10 +29,10 @@ class SimpleAnalyzer:
         # 只统计以下几种颜色
         color_keys = [u"红色", u"橙色", u"黄色", u"绿色", u"蓝色", u"紫色", u"黑色", u"白色", u"粉色"]
 
-        print "正在统计中， 请耐心等待......"
+        print("正在统计中， 请耐心等待......")
         before_exec_time = datetime.now()
         for rate in self.rates:
-            # print rate['size_info']
+            # print(rate['size_info'])
 
             # 统计罩杯尺寸
             sizes = re.findall(size_pattern, rate['size_info'])
@@ -63,7 +58,7 @@ class SimpleAnalyzer:
                     else:
                         self.colors[color_key] = 1
         after_exec_time = datetime.now()
-        print "共耗时", (after_exec_time - before_exec_time).seconds, "秒"
+        print("共耗时", (after_exec_time - before_exec_time).seconds, "秒")
         self.__close()
 
     def __close(self):
@@ -83,7 +78,7 @@ if __name__ == '__main__':
 
     # 把数据保存到bra.json中
     dat = json.dumps(bra_data, ensure_ascii=False)
-    print dat
+    print(dat)
     f = open('bra.json', 'w')
     f.write(dat)
     f.close()

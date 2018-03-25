@@ -1,9 +1,8 @@
 # -*- coding:utf-8 -*-
 import pymongo
 import requests
-import requesocks
-from model import FailedUrl
-from config import *
+from lib.model import FailedUrl
+from lib.config import *
 
 
 # 初始化mongodb客户端
@@ -18,7 +17,7 @@ def init_client():
 # 根据是否使用tor代理，来获取http客户端
 def get_http_client():
     if config['use_tor_proxy']:
-        session = requesocks.session()
+        session = requests.session()
         session.proxies = {'http': 'socks5://127.0.0.1:%d' % config['tor_proxy_port'],
                            'https': 'socks5://127.0.0.1:%d' % config['tor_proxy_port']}
         return session

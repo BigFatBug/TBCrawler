@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 """ 生成词云图片 """
 from wordcloud import WordCloud, ImageColorGenerator
-import cPickle as pickle
+import pickle
 import numpy as np
 from PIL import Image
 
@@ -30,4 +30,4 @@ if __name__ == "__main__":
 
     # 保存图片
     wc.to_file("./assets/word_cloud1.png")
-    print "saved at ./assets/word_cloud1.png"
+    print("saved at ./assets/word_cloud1.png")
