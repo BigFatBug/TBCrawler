@@ -3,8 +3,15 @@
 import Vue from 'vue'
 import App from './App'
 import router from './router'
+import 'iview/dist/styles/iview.css'
+import iView from 'iview'
+Vue.use(iView)
 
 Vue.config.productionTip = false
+
+// 引入echarts
+import echarts from 'echarts'
+Vue.prototype.$echarts = echarts
 
 /* eslint-disable no-new */
 new Vue({
