@@ -236,7 +236,7 @@
       <Card>
         <p slot="title" class="card-title">
           <Icon type="android-map"></Icon>
-          上周评论数统计
+          过去半年评论数统计
         </p>
         <div class="data-source-row">
           <visite-volume></visite-volume>
@@ -247,7 +247,7 @@
       <Card>
         <p slot="title" class="card-title">
           <Icon type="ios-pulse-strong"></Icon>
-          数据来源统计
+          评论比例图统计
         </p>
         <div class="data-source-row">
           <data-source-pie></data-source-pie>
@@ -257,8 +257,8 @@
       <Col :md="24" :lg="8">
       <Card>
         <p slot="title" class="card-title">
-          <Icon type="android-wifi"></Icon>
-          各类用户服务调用变化统计
+          <Icon type="ios-pulse-strong"></Icon>
+          每日好评占比折线图
         </p>
         <div class="data-source-row">
           <user-flow></user-flow>
@@ -270,7 +270,7 @@
       <Card>
         <p slot="title" class="card-title">
           <Icon type="ios-shuffle-strong"></Icon>
-          上周每日服务调用量(万)
+          各种评论每日比例趋势
         </p>
         <div class="line-chart-con">
           <service-requests></service-requests>

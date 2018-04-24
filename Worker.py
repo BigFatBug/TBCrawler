@@ -9,16 +9,18 @@
 import re
 import json
 import requests
-from lxml import etree
+import threading
 
 
-class Crawler(object):
+class Worker(threading.Thread):
 
-    def __init__(self):
-        pass
+    def __init__(self, objectUrl, queryId):
+        super(Worker,self).__init__()
+        self.objectUrl = objectUrl
+        self.queryId = queryId
 
-    def crawler(self, objectUrl):
-        objectId = self.getObjectId(objectUrl)
+    def run(self):
+        objectId = self.getObjectId(self.objectUrl)
         tagList = self.getTags(objectId)
         res = self.getRate(objectId)
 
@@ -60,10 +62,6 @@ class Crawler(object):
 
 
 if __name__ == '__main__':
-    c = Crawler()
-    try:
-        raise Exception('test')
-    except Exception as e:
-        print(e)
-    c.crawler('https://item.taobao.com/item.htm?spm=a230r.1.14.248.914b6443cNP7Wu&id=41464813277&ns=1&abbucket=6#detail')
+    c = Worker('https://item.taobao.com/item.htm?spm=a230r.1.14.248.914b6443cNP7Wu&id=41464813277&ns=1&abbucket=6#detail', 'test')
+    c.start()
     # c.getrate_tmall(558540134751)
