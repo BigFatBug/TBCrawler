@@ -1,6 +1,7 @@
 <template>
     <div :style="styleObj">
-        <Table :height="height" :columns="columns" :data="cityData"></Table>
+        <Table border :height="240" :columns="columns" :data="cityData"></Table>
+        <Page :total="100" class="margin-top-8"></Page>
     </div>
 </template>
 
@@ -11,7 +12,7 @@ export default {
         return {
             columns: [
                 {
-                    title: '城市',
+                    title: '编号',
                     key: 'name'
                 },
                 {
@@ -24,8 +25,7 @@ export default {
     },
     props: {
         cityData: Array,
-        styleObj: Object,
-        height: String
+        styleObj: Object
     }
 };
 </script>
