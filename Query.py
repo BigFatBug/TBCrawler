@@ -8,7 +8,7 @@ class Query(object):
         self.queryId = queryId
         self.redisClient = RedisClient()
         self.redisClient.connect()
-        self.mysqlClient = MysqlClient()
+        self.session = MysqlClient().getSession()
 
     def queryStatus(self):
         return self.redisClient.getValue(self.queryId, 'status')
