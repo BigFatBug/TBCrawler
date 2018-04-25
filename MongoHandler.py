@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from copy import deepcopy
+from datetime import datetime
 from pymongo import MongoClient
 
 
@@ -29,11 +29,31 @@ class MongoHandler():
     def getCollection(self, collection, db='taobao'):
         return self.client.get_database(db).get_collection(collection)
 
-    def update(self, collection_name, key, value,  updateRow):
-        collection = self.getCollection(collection_name)
+    def getCommentSize(self, objectId):
+        return self.getCollection('comment').count({'objectId': objectId})
+
+    def getData(self, collectionName, filterRow):
+        return self.getCollection(collectionName).find_one(filterRow)
+
+    def getDatas(self, collectionName, filterRow):
+        return list(self.getCollection(collectionName).find(filterRow))
+
+    def getAggregate(self, collectionName, filterRow):
+        return list(self.getCollection(collectionName).aggregate(filterRow))
+
+    def update(self, collectionName, key, value,  updateRow):
+        collection = self.getCollection(collectionName)
         data = collection.find_one({key: value})
-        data.update(updateRow)
-        collection.update({key: value}, {'$set': data})
+        if not data:
+            data = updateRow
+            data[key] = value
+            data['createTime'] = datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+            data['updateTime'] = datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+            collection.insert(data)
+        else:
+            data.update(updateRow)
+            data['updateTime'] = datetime.today().strftime("%Y-%m-%d %H:%M:%S")
+            collection.update({key: value}, {'$set': data})
 
     def updateStatus(self, status, queryId):
         collection = self.getCollection('status')

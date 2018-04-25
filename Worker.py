@@ -84,37 +84,45 @@ class Worker(threading.Thread):
         objectId = str(objectId)
         pageNum = 1
         pageMax = 1
+        total = -1
+        i = 0
         rateUrl = 'https://rate.taobao.com/feedRateList.htm?auctionNumId={0}&currentPageNum={1}&pageSize=20&rateType=&orderType=feedbackdate'
         while pageNum <= pageMax:
             r = requests.get(rateUrl.format(objectId, pageNum))
             aa = self.getJson(r.text)
             ss = json.loads(self.getJson(aa))
-            total = ss['total']
-            if total == 0:
-                break
+            if total == -1:
+                total = ss['total']
+                if total == 0:
+                    break
             pageMax = (total-1) // 20 + 1
             for comment in ss['comments']:
-                commentDate = datetime.strptime(comment['date'], "%Y年%m月%d日 %H:%M")
+                try:
+                    commentDate = datetime.strptime(comment['date'], "%Y年%m月%d日 %H:%M")
+                except Exception:
+                    commentDate = None
                 commentModel = {
                     'objectId': objectId,
                     'tag': comment['tag'],
-                    "pageNum": pageMax - pageNum + 1,
-                    'comment': comment['comment'],
+                    "index": total - i,
+                    'comment': comment['content'],
                     'commentId': comment['rateId'],
                     'rateType': comment['rate'],
-                    'sku': comment['auction']['sku'],
+                    'sku': [{c.split(':')[0]:c.split(':')[1]} for c in comment['auction']['sku'].split('&nbsp;&nbsp')] if comment['auction']['sku'] else '',
                     'user': comment['user']['nick'],
-                    'commentDate': commentDate.date(),
-                    'commentTime': commentDate,
+                    'commentDate': str(commentDate.date()) if commentDate else '',
+                    'commentTime': commentDate.strftime("%Y-%m-%d %H:%M:%S") if commentDate else '',
                     'createTime': datetime.today().strftime("%Y-%m-%d %H:%M:%S"),
                     'updateTime': datetime.today().strftime("%Y-%m-%d %H:%M:%S")
                 }
                 self.mongoHandler.insertComment(commentModel)
+                i += 1
+            pageNum += 1
 
 
 if __name__ == '__main__':
     c = Worker(
-        'https://item.taobao.com/item.htm?spm=a230r.1.14.248.914b6443cNP7Wu&id=41464813277&ns=1&abbucket=6#detail',
+        'https://item.taobao.com/item.htm?spm=a230r.1.14.248.914b6443cNP7Wu&id=37900975113&ns=1&abbucket=6#detail',
         'test')
     c.start()
     # c.getrate_tmall(558540134751)
