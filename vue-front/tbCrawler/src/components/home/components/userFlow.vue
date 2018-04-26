@@ -1,81 +1,54 @@
 <template>
-    <div style="width:100%;height:100%;" id="user_flow"></div>
+  <div style="width:100%;height:100%;" id="user_flow"></div>
 </template>
 
 <script>
-import echarts from 'echarts';
+  import echarts from 'echarts';
 
-const option = {
-    tooltip: {
-        formatter: '{a} <br/>{b} : {c}%'
-    },
-    series: [
-        {
-            name: '入流量',
-            type: 'gauge',
-            min: 0,
-            max: 1000,
-            detail: {
-                formatter: '{value}Mb+',
-                fontSize: 18,
-                offsetCenter: [0, '50px']
-            },
-            data: [{value: 50, name: '当前入流量'}],
-            center: ['25%', '50%'],
-            radius: '80%',
-            title: {
-                offsetCenter: [0, '80px']
-            },
-            axisLine: {
-                lineStyle: {
-                    // color: [],
-                    width: 20
-                }
-            },
-            splitLine: {
-                length: 20
-            }
-        },
-        {
-            name: '出流量',
-            type: 'gauge',
-            min: 0,
-            max: 1000,
-            detail: {
-                formatter: '{value}Mb+',
-                fontSize: 18,
-                offsetCenter: [0, '50px']
-            },
-            data: [{value: 50, name: '当前出流量'}],
-            center: ['75%', '50%'],
-            radius: '80%',
-            title: {
-                offsetCenter: [0, '80px']
-            },
-            axisLine: {
-                lineStyle: {
-                    // color: [],
-                    width: 20
-                }
-            },
-            splitLine: {
-                length: 20
-            }
-        }
-    ]
-};
 
-export default {
+  export default {
     name: 'userFlow',
-    mounted () {
-        let userFlow = echarts.init(document.getElementById('user_flow'));
-        option.series[0].data[0].value = (Math.random() * 1000).toFixed(2) - 0;
-        option.series[1].data[0].value = (Math.random() * 1000).toFixed(2) - 0;
-        userFlow.setOption(option);
-
+    mounted() {
+    },
+    methods: {
+      show(data) {
+        let dataSourcePie = echarts.init(document.getElementById('data_source_con'));
+        const option = {
+          tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b} : {c} ({d}%)'
+          },
+          legend: {
+            orient: 'vertical',
+            left: 'right',
+            data: ['好评', '中评', '差评']
+          },
+          series: [
+            {
+              name: '评论占比',
+              type: 'pie',
+              radius: '66%',
+              center: ['50%', '60%'],
+              data: [
+                {value: data.good, name: '好评', itemStyle: {normal: {color: '#9bd598'}}},
+                {value: data.normal, name: '中评', itemStyle: {normal: {color: '#ffd58f'}}},
+                {value: data.bad, name: '差评', itemStyle: {normal: {color: '#abd5f2'}}}
+              ],
+              itemStyle: {
+                emphasis: {
+                  shadowBlur: 10,
+                  shadowOffsetX: 0,
+                  shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+              }
+            }
+          ]
+        };
+        dataSourcePie.setOption(option);
         window.addEventListener('resize', function () {
-            userFlow.resize();
+          dataSourcePie.resize();
         });
+      }
     }
-};
+  }
 </script>

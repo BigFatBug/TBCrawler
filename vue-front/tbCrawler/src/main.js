@@ -5,9 +5,12 @@ import App from './App'
 import router from './router'
 import 'iview/dist/styles/iview.css'
 import iView from 'iview'
+import axios from 'axios'
+
 Vue.use(iView)
 
 Vue.config.productionTip = false
+Vue.prototype.$http = axios;
 
 // 引入echarts
 import echarts from 'echarts'

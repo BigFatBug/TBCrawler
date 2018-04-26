@@ -101,8 +101,9 @@
             <Col span="16" style="padding-left:6px;">
             <Row class-name="made-child-con-middle" type="flex" align="middle">
               <div>
-                <Input v-model="value" placeholder="输入商品链接"></Input>
-                <Button type="primary" :loading="startLoading" icon="checkmark-round" class="margin-top-10">
+                <Input v-model="url" placeholder="输入商品链接"></Input>
+                <Button type="primary" :loading="startLoading" icon="checkmark-round" class="margin-top-10"
+                        @click="start">
                   <span v-if="!startLoading">开爬!</span>
                   <span v-else>爬取中...</span>
                 </Button>
@@ -335,7 +336,15 @@
         },
         cityData: cityData,
         showAddNewTodo: false,
-        newToDoItemValue: ''
+        newToDoItemValue: '',
+        queryRatesInterval: null,
+        queryTagsInterval: null,
+        queryRateTypeWeightInterval: null,
+        queryLastSixMonthInterval: null,
+        queryRateTypeEveryDayInterval: null,
+        queryObjectTypeWeightInterval: null,
+        url: '',
+        objectId: ''
       };
     },
     methods: {
@@ -358,6 +367,32 @@
       cancelAdd() {
         this.showAddNewTodo = false;
         this.newToDoItemValue = '';
+      },
+      start() {
+        this.$http.get("/start", {params: {url: this.url}}).then((response) => {
+          this.objectId = response.data.objectId
+          this.queryRates(objectId, 1)
+          this.$http.get("/queryTags", {params: {object: this.object}}).then((response) => {
+            this.objectId = response.data.objectId
+          })
+          this.$http.get("/queryRateTypeWeight", {params: {object: this.object}}).then((response) => {
+            this.objectId = response.data.objectId
+          })
+          this.$http.get("/queryLastSixMonth", {params: {object: this.object}}).then((response) => {
+            this.objectId = response.data.objectId
+          })
+          this.$http.get("/queryRateTypeEveryDay", {params: {object: this.object}}).then((response) => {
+            this.objectId = response.data.objectId
+          })
+          this.$http.get("/queryObjectTypeWeight", {params: {object: this.object}}).then((response) => {
+            this.objectId = response.data.objectId
+          })
+        })
+      },
+      queryRates(objectId, pageNum){
+        this.$http.get("/queryRates", {params: {object: this.object, pageNum: pageNum}}).then((response) => {
+          this.objectId = response.data.objectId
+        })
       }
     }
   };
