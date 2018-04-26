@@ -2,30 +2,78 @@
 from utils import *
 from flask import Flask, request
 from Worker import Worker
+from Query import Query
 
 app = Flask(__name__)
-app.secret_key = 'Sqsdsffqrhgh.,/1#$%^&'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:!23$56@localhost:3306/tb_crawler?charset=utf8'
-app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.debug = True
 
-@app.route('/query', methods=['GET'])
-def query():
-    try:
-        queryId = request.args.get('queryId')
-        return responseData(queryId)
-    except Exception as e:
-        return responseData(None, -1, str(e))
 
-@app.route('/crawler', methods=['GET'])
+@app.route('/start', methods=['GET'])
 def crawler():
     try:
         objectUrl = request.args.get('objectUrl')
         queryId = encrypt(objectUrl)
-        Worker(objectUrl, queryId).start()
+        Worker(objectUrl, queryId).run()
         return responseData(queryId)
     except Exception as e:
         return responseData(None, -1, str(e))
+
+
+@app.route('/queryRates', methods=['GET'])
+def queryRates():
+    try:
+        objectId = request.args.get('objectId')
+        pageNum = request.args.get('pageNum')
+        q = Query()
+        res = q.queryRates(objectId, int(pageNum))
+        return responseData(res)
+    except Exception as e:
+        return responseData(None, -1, str(e))
+
+
+@app.route('/queryTags', methods=['GET'])
+def queryTags():
+    try:
+        objectId = request.args.get('objectId')
+        q = Query()
+        res = q.queryTags(objectId)
+        return responseData(res)
+    except Exception as e:
+        return responseData(None, -1, str(e))
+
+
+@app.route('/queryRateTypeWeight', methods=['GET'])
+def queryRateTypeWeight():
+    try:
+        objectId = request.args.get('objectId')
+        q = Query()
+        res = q.queryRateTypeWeight(objectId)
+        return responseData(res)
+    except Exception as e:
+        return responseData(None, -1, str(e))
+
+
+@app.route('/queryLastSixMonth', methods=['GET'])
+def queryLastSixMonth():
+    try:
+        objectId = request.args.get('objectId')
+        q = Query()
+        res = q.queryLastSixMonth(objectId)
+        return responseData(res)
+    except Exception as e:
+        return responseData(None, -1, str(e))
+
+
+@app.route('/queryObjectTypeWeight', methods=['GET'])
+def queryObjectTypeWeight():
+    try:
+        objectId = request.args.get('objectId')
+        q = Query()
+        res = q.queryObjectTypeWeight(objectId)
+        return responseData(res)
+    except Exception as e:
+        return responseData(None, -1, str(e))
+
 
 if __name__ == '__main__':
     # db.create_all()

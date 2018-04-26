@@ -38,6 +38,9 @@ class MongoHandler():
     def getDatas(self, collectionName, filterRow):
         return list(self.getCollection(collectionName).find(filterRow))
 
+    def getMaxIndex(self):
+        return self.getCollection('comment').find().sort({'index': -1}).limit(1)
+
     def getAggregate(self, collectionName, filterRow):
         return list(self.getCollection(collectionName).aggregate(filterRow))
 

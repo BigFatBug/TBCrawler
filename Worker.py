@@ -87,7 +87,13 @@ class Worker(threading.Thread):
         total = -1
         i = 0
         rateUrl = 'https://rate.taobao.com/feedRateList.htm?auctionNumId={0}&currentPageNum={1}&pageSize=20&rateType=&orderType=feedbackdate'
-        sku = {}
+        try:
+            maxIndex = self.mongoHandler.getData('info', {'objectId': objectId})['total']
+            sku = self.mongoHandler.getData('info', {'objectId': objectId})['sku']
+        except:
+            maxIndex = 0
+            sku = {}
+        finish = False
         while pageNum <= pageMax:
             r = requests.get(rateUrl.format(objectId, pageNum))
             aa = self.getJson(r.text)
@@ -96,8 +102,13 @@ class Worker(threading.Thread):
                 total = ss['total']
                 if total == 0:
                     break
-            pageMax = (total-1) // 20 + 1
+                pageMax = (total - 1) // 20 + 1
+                self.mongoHandler.update('info', 'objectId', objectId, {'total' :total, 'pageMax': pageMax})
+
             for comment in ss['comments']:
+                if total - i <= maxIndex:
+                    finish = True
+                    break
                 try:
                     commentDate = datetime.strptime(comment['date'], "%Y年%m月%d日 %H:%M")
                 except Exception:
@@ -125,6 +136,8 @@ class Worker(threading.Thread):
                 }
                 self.mongoHandler.insertComment(commentModel)
                 i += 1
+            if finish:
+                break
             pageNum += 1
         self.mongoHandler.update('info', 'objectId', objectId, {'sku' :sku})
 
