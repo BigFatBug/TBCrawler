@@ -128,22 +128,6 @@
             </RadioGroup>
             </Col>
           </Row>
-          <Row class="margin-top-8">
-            <Col span="8">
-            <p class="notwrap">是否带标签:</p></Col>
-            <Col span="16" class="padding-left-8">
-            <RadioGroup v-model="ifTarget">
-              <Radio :label="true">
-                <Icon type="ios-pricetag"></Icon>
-                <span>是</span>
-              </Radio>
-              <Radio :label="false">
-                <Icon type="ios-pricetag-outline"></Icon>
-                <span>否</span>
-              </Radio>
-            </RadioGroup>
-            </Col>
-          </Row>
         </Card>
         </Col>
         <Col :md="12" :lg="24" :style="{marginBottom: '10px'}">
@@ -179,41 +163,12 @@
       </Col>
       <Col :md="24" :lg="16">
       <Row :gutter="5">
-        <Col :xs="24" :sm="12" :md="6" :style="{marginBottom: '10px'}">
+        <Col v-for="tag in tagList" :xs="24" :sm="12" :md="6" :style="{marginBottom: '10px'}">
         <infor-card
-          id-name="user_created_count"
-          :end-val="count.createUser"
+          :end-val="tag.count"
           iconType="android-person-add"
           color="#2d8cf0"
-          intro-text="今日新增用户"
-        ></infor-card>
-        </Col>
-        <Col :xs="24" :sm="12" :md="6" :style="{marginBottom: '10px'}">
-        <infor-card
-          id-name="visit_count"
-          :end-val="count.visit"
-          iconType="ios-eye"
-          color="#64d572"
-          :iconSize="50"
-          intro-text="今日浏览量"
-        ></infor-card>
-        </Col>
-        <Col :xs="24" :sm="12" :md="6" :style="{marginBottom: '10px'}">
-        <infor-card
-          id-name="collection_count"
-          :end-val="count.collection"
-          iconType="upload"
-          color="#ffd572"
-          intro-text="今日数据采集量"
-        ></infor-card>
-        </Col>
-        <Col :xs="24" :sm="12" :md="6" :style="{marginBottom: '10px'}">
-        <infor-card
-          id-name="transfer_count"
-          :end-val="count.transfer"
-          iconType="shuffle"
-          color="#f25e43"
-          intro-text="今日服务调用量"
+          intro-text="tag.title"
         ></infor-card>
         </Col>
       </Row>
@@ -225,7 +180,7 @@
           </p>
           <div class="map-con">
             <Col span="24">
-            <map-data-table :cityData="cityData" height="281" :style-obj="{margin: '12px 0 0 11px'}"></map-data-table>
+              <map-data-table :data="rateList" height="281" :style-obj="{margin: '12px 0 0 11px'}"></map-data-table>
             </Col>
           </div>
         </Card>
@@ -240,7 +195,7 @@
           过去半年评论数统计
         </p>
         <div class="data-source-row">
-          <visite-volume></visite-volume>
+          <visite-volume ref="lastSix"></visite-volume>
         </div>
       </Card>
       </Col>
@@ -251,7 +206,7 @@
           评论比例图统计
         </p>
         <div class="data-source-row">
-          <data-source-pie></data-source-pie>
+          <data-source-pie ref="rateWeight"></data-source-pie>
         </div>
       </Card>
       </Col>
@@ -274,7 +229,7 @@
           各种评论每日比例趋势
         </p>
         <div class="line-chart-con">
-          <service-requests></service-requests>
+          <service-requests ref="everyDay"></service-requests>
         </div>
       </Card>
     </Row>
@@ -328,68 +283,35 @@
             title: '去iView官网学习完整的iView组件'
           }
         ],
-        count: {
-          createUser: 496,
-          visit: 3264,
-          collection: 24389305,
-          transfer: 39503498
-        },
-        cityData: cityData,
-        showAddNewTodo: false,
-        newToDoItemValue: '',
-        queryRatesInterval: null,
-        queryTagsInterval: null,
-        queryRateTypeWeightInterval: null,
-        queryLastSixMonthInterval: null,
-        queryRateTypeEveryDayInterval: null,
-        queryObjectTypeWeightInterval: null,
         url: '',
-        objectId: ''
+        objectId: '',
+        tagList: [],
+        rateList: []
       };
     },
     methods: {
-      addNewToDoItem() {
-        this.showAddNewTodo = true;
-      },
-      addNew() {
-        if (this.newToDoItemValue.length !== 0) {
-          this.toDoList.unshift({
-            title: this.newToDoItemValue
-          });
-          setTimeout(() => {
-            this.newToDoItemValue = '';
-          }, 200);
-          this.showAddNewTodo = false;
-        } else {
-          this.$Message.error('请输入待办事项内容');
-        }
-      },
-      cancelAdd() {
-        this.showAddNewTodo = false;
-        this.newToDoItemValue = '';
-      },
       start() {
         this.$http.get("/start", {params: {url: this.url}}).then((response) => {
           this.objectId = response.data.objectId
           this.queryRates(objectId, 1)
           this.$http.get("/queryTags", {params: {object: this.object}}).then((response) => {
-            this.objectId = response.data.objectId
+            this.tagList = response.data
           })
           this.$http.get("/queryRateTypeWeight", {params: {object: this.object}}).then((response) => {
-            this.objectId = response.data.objectId
+//            this.objectId = response.data.objectId
           })
           this.$http.get("/queryLastSixMonth", {params: {object: this.object}}).then((response) => {
-            this.objectId = response.data.objectId
+//            this.objectId = response.data.objectId
           })
           this.$http.get("/queryRateTypeEveryDay", {params: {object: this.object}}).then((response) => {
-            this.objectId = response.data.objectId
+//            this.objectId = response.data.objectId
           })
           this.$http.get("/queryObjectTypeWeight", {params: {object: this.object}}).then((response) => {
-            this.objectId = response.data.objectId
+//            this.objectId = response.data.objectId
           })
         })
       },
-      queryRates(objectId, pageNum){
+      queryRates(objectId, pageNum) {
         this.$http.get("/queryRates", {params: {object: this.object, pageNum: pageNum}}).then((response) => {
           this.objectId = response.data.objectId
         })

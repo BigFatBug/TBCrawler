@@ -1,6 +1,6 @@
 <template>
     <div :style="styleObj">
-        <Table border :height="240" :columns="columns" :data="cityData"></Table>
+        <Table border :height="240" :columns="columns" :data="data"></Table>
         <Page :total="100" class="margin-top-8"></Page>
     </div>
 </template>
@@ -24,7 +24,7 @@ export default {
         };
     },
     props: {
-        cityData: Array,
+        data: Array,
         styleObj: Object
     }
 };
