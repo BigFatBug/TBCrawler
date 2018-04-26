@@ -22,7 +22,7 @@ class Worker(threading.Thread):
         self.getRate(objectId)
 
     def getObjectId(self, objectUrl):
-        return re.match('.*id=([0-9]+)', objectUrl).groups()[0]
+        return re.match('.*[&\?]id=([0-9]+)', objectUrl).groups()[0]
 
     def getJson(self, data):
         return re.search('{.*}', data).group()
