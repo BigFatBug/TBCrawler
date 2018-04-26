@@ -33,10 +33,10 @@ class MongoHandler():
         return self.getCollection('comment').count({'objectId': objectId})
 
     def getData(self, collectionName, filterRow):
-        return self.getCollection(collectionName).find_one(filterRow)
+        return self.getCollection(collectionName).find_one(filterRow, {'_id': 0})
 
     def getDatas(self, collectionName, filterRow):
-        return list(self.getCollection(collectionName).find(filterRow))
+        return list(self.getCollection(collectionName).find(filterRow, {'_id': 0}))
 
     def getMaxIndex(self):
         return self.getCollection('comment').find().sort({'index': -1}).limit(1)

@@ -63,6 +63,16 @@ def queryLastSixMonth():
     except Exception as e:
         return responseData(None, -1, str(e))
 
+@app.route('/queryRateTypeEveryDay', methods=['GET'])
+def queryRateTypeEveryDay():
+    try:
+        objectId = request.args.get('objectId')
+        q = Query()
+        res = q.queryRateTypeEveryDay(objectId)
+        return responseData(res)
+    except Exception as e:
+        return responseData(None, -1, str(e))
+
 
 @app.route('/queryObjectTypeWeight', methods=['GET'])
 def queryObjectTypeWeight():

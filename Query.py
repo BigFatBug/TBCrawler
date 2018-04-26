@@ -18,7 +18,7 @@ class Query(object):
         while 1:
             try:
                 total = self.mongoHandler.getData('info', {'objectId': objectId})['total']
-                pageMax = self.mongoHandler.getData('info', {'objectId': objectId})['total']
+                pageMax = self.mongoHandler.getData('info', {'objectId': objectId})['pageMax']
                 indexRange = (total - (pageNum - 1) * 20, total - pageNum * 20)
                 rateList = self.mongoHandler.getDatas('comment', {'objectId': objectId,
                                                                   'index': {'$gte': indexRange[1], '$lt': indexRange[0]}})
@@ -63,34 +63,48 @@ class Query(object):
     # 日评论比例曲线
     def queryRateTypeEveryDay(self, objectId):
         today = datetime.today()
-        resSum = self.mongoHandler.getAggregate('comment', [
-            {'$match': {'objectId': objectId, 'commentDate': {'$gte': (today - timedelta(days=100)).strftime('%Y-%m-%d'), '$lte': today.strftime('%Y-%m-%d')}}},
-            {'$group': {'_id': 'commentDate', 'count': {'$sum': 1}}}])
+        res = {
+            'dayList': [],
+            'badList': [],
+            'goodList': [],
+            'normalList': []
+        }
+        resSum = {x['_id']: x['count'] for x in self.mongoHandler.getAggregate('comment', [
+            {'$match': {'objectId': objectId, 'commentDate': {'$gte': (today - timedelta(days=99)).strftime('%Y-%m-%d'), '$lte': today.strftime('%Y-%m-%d')}}},
+            {'$group': {'_id': '$commentDate', 'count': {'$sum': 1}}}])}
 
-        good = self.mongoHandler.getAggregate('comment', [
-            {'$match': {'objectId': objectId, 'rateType': 1, 'commentDate': {'$gte': (today - timedelta(days=100)).strftime('%Y-%m-%d'), '$lte': today.strftime('%Y-%m-%d')}}},
-            {'$group': {'_id': 'commentDate', 'count': {'$sum': 1}}}])
+        good = {x['_id']: x['count'] for x in self.mongoHandler.getAggregate('comment', [
+            {'$match': {'objectId': objectId, 'rateType': '1', 'commentDate': {'$gte': (today - timedelta(days=99)).strftime('%Y-%m-%d'), '$lte': today.strftime('%Y-%m-%d')}}},
+            {'$group': {'_id': '$commentDate', 'count': {'$sum': 1}}}])}
 
-        normal = self.mongoHandler.getAggregate('comment', [
-            {'$match': {'objectId': objectId, 'rateType': 0, 'commentDate': {'$gte': (today - timedelta(days=100)).strftime('%Y-%m-%d'), '$lte': today.strftime('%Y-%m-%d')}}},
-            {'$group': {'_id': 'commentDate', 'count': {'$sum': 1}}}])
+        normal = {x['_id']: x['count'] for x in self.mongoHandler.getAggregate('comment', [
+            {'$match': {'objectId': objectId, 'rateType': '0', 'commentDate': {'$gte': (today - timedelta(days=99)).strftime('%Y-%m-%d'), '$lte': today.strftime('%Y-%m-%d')}}},
+            {'$group': {'_id': '$commentDate', 'count': {'$sum': 1}}}])}
 
-        bad = self.mongoHandler.getAggregate('comment', [
-            {'$match': {'objectId': objectId, 'rateType': -1, 'commentDate': {'$gte': (today - timedelta(days=100)).strftime('%Y-%m-%d'), '$lte': today.strftime('%Y-%m-%d')}}},
-            {'$group': {'_id': 'commentDate', 'count': {'$sum': 1}}}])
-        for i in range(len(resSum)):
-            bad[i] = bad[i] / resSum[i]
-            normal[i] = normal[i] / resSum[i]
-            good[i] = good[i] / resSum[i]
+        bad = {x['_id']: x['count'] for x in self.mongoHandler.getAggregate('comment', [
+            {'$match': {'objectId': objectId, 'rateType': '-1', 'commentDate': {'$gte': (today - timedelta(days=99)).strftime('%Y-%m-%d'), '$lte': today.strftime('%Y-%m-%d')}}},
+            {'$group': {'_id': '$commentDate', 'count': {'$sum': 1}}}])}
 
-        return {'badList': bad, 'normal': normal, 'good': good}
+        for i in range(99, -1, -1):
+            d = (today - timedelta(days=i)).strftime('%Y-%m-%d')
+            res['dayList'].append(d)
+            if not resSum.get(d):
+                res['goodList'].append(0)
+                res['badList'].append(0)
+                res['normalList'].append(0)
+            else:
+                res['goodList'].append(good.get(d, 0)/resSum[d])
+                res['normalList'].append(normal.get(d, 0)/resSum[d])
+                res['badList'].append(bad.get(d, 0)/resSum[d])
+
+        return res
 
     # 商品分类比例
     def queryObjectTypeWeight(self, objectId):
         res = []
         sku = self.mongoHandler.getData('info', {'objectId': objectId})['sku']
         for k,v in sku.items():
-            res.append({'titleList': v.keys(), 'dataList': v})
+            res.append({'name': k, 'titleList': list(v.keys()), 'dataList': v})
         return res
 
 if __name__ == '__main__':
