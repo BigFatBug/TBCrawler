@@ -7,14 +7,13 @@ from Query import Query
 app = Flask(__name__)
 app.debug = True
 
-
 @app.route('/start', methods=['GET'])
 def crawler():
     try:
         objectUrl = request.args.get('objectUrl')
-        queryId = encrypt(objectUrl)
-        Worker(objectUrl, queryId).run()
-        return responseData(queryId)
+        worker = Worker(objectUrl)
+        worker.run()
+        return responseData(worker.objectId)
     except Exception as e:
         return responseData(None, -1, str(e))
 
@@ -87,4 +86,4 @@ def queryObjectTypeWeight():
 
 if __name__ == '__main__':
     # db.create_all()
-    app.run()
+    app.run(processes=5)

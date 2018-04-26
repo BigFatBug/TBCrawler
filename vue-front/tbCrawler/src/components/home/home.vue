@@ -134,28 +134,13 @@
         <Card>
           <p slot="title" class="card-title">
             <Icon type="android-checkbox-outline"></Icon>
-            用户统计
+            记录日志
           </p>
-          <a type="text" slot="extra" @click.prevent="addNewToDoItem">
+          <a type="text" slot="extra">
             <Icon type="plus-round"></Icon>
           </a>
-          <Modal
-            v-model="showAddNewTodo"
-            title="添加新的待办事项"
-            @on-ok="addNew"
-            @on-cancel="cancelAdd">
-            <Row type="flex" justify="center">
-              <Input v-model="newToDoItemValue" icon="compose" placeholder="请输入..." style="width: 300px"/>
-            </Row>
-            <Row slot="footer">
-              <Button type="text" @click="cancelAdd">取消</Button>
-              <Button type="primary" @click="addNew">确定</Button>
-            </Row>
-          </Modal>
           <div class="to-do-list-con">
-            <div v-for="(item, index) in toDoList" :key="index" class="to-do-item">
-              <to-do-list-item :content="item.title"></to-do-list-item>
-            </div>
+            <p v-for="l in log">{{ l }}</p>
           </div>
         </Card>
         </Col>
@@ -163,12 +148,13 @@
       </Col>
       <Col :md="24" :lg="16">
       <Row :gutter="5">
-        <Col v-for="tag in tagList" :xs="24" :sm="12" :md="6" :style="{marginBottom: '10px'}">
+        <Col v-for="(tag, index) in tagList" :xs="24" :sm="12" :md="6" :style="{marginBottom: '10px'}">
         <infor-card
+          :id-name="tag.attribute"
           :end-val="tag.count"
-          iconType="android-person-add"
-          color="#2d8cf0"
-          intro-text="tag.title"
+          :iconType="tagIconList[index % 13]"
+          :color="colorList[index % 11]"
+          :intro-text="tag.title"
         ></infor-card>
         </Col>
       </Row>
@@ -180,7 +166,7 @@
           </p>
           <div class="map-con">
             <Col span="24">
-              <map-data-table :data="rateList" height="281" :style-obj="{margin: '12px 0 0 11px'}"></map-data-table>
+              <map-data-table :data="rateList" :loading="tableLoading" :style-obj="{margin: '12px 0 0 11px'}"></map-data-table>
             </Col>
           </div>
         </Card>
@@ -210,16 +196,16 @@
         </div>
       </Card>
       </Col>
-      <Col :md="24" :lg="8">
-      <Card>
-        <p slot="title" class="card-title">
-          <Icon type="ios-pulse-strong"></Icon>
-          每日好评占比折线图
-        </p>
-        <div class="data-source-row">
-          <user-flow></user-flow>
-        </div>
-      </Card>
+      <Col v-for="(objectSku, index) in objectSkuList" :md="24" :lg="8">
+        <Card>
+          <p slot="title" class="card-title">
+            <Icon type="ios-pulse-strong"></Icon>
+            商品分类统计
+          </p>
+          <div class="data-source-row">
+            <user-flow :ref="'objectType' + index" :index="index" :data="objectSku"></user-flow>
+          </div>
+        </Card>
       </Col>
     </Row>
     <Row class="margin-top-10">
@@ -265,7 +251,35 @@
       return {
         mall: 'tmail',
         startLoading: false,
+        tableLoading: false,
+        tagIconList: [
+          'android-person-add',
+          'edit',
+          'clipboard',
+          'archive',
+          'paper-airplane',
+          'link',
+          'quote',
+          'key',
+          'pizza',
+          'icecream',
+          'coffee',
+          'battery-low'
+        ],
+        colorList: [
+          '#2d8cf0',
+          '#9bd598',
+          '#0C17A6',
+          '#ffd58f',
+          '#ca1827',
+          '#abd5f2',
+          '#c09821',
+          '#47291e',
+          '#72ee51',
+          '#d8cb09'
+        ],
         ifTarget: true,
+        log: [],
         toDoList: [
           {
             title: '去iView官网学习完整的iView组件'
@@ -286,35 +300,65 @@
         url: '',
         objectId: '',
         tagList: [],
-        rateList: []
+        rateList: [],
+        objectSkuList: [],
+        objectTypeInterval: null,
+        pageMax: 0
       };
     },
     methods: {
       start() {
-        this.$http.get("/start", {params: {url: this.url}}).then((response) => {
-          this.objectId = response.data.objectId
-          this.queryRates(objectId, 1)
-          this.$http.get("/queryTags", {params: {object: this.object}}).then((response) => {
-            this.tagList = response.data
+        this.log = ['开始爬取...']
+        this.startLoading = true
+        this.$http.get("/api/start", {params: {objectUrl: this.url}}).then((response) => {
+          this.log.push('后台发送爬取信号...')
+          this.startLoading = false
+          this.tableLoading = true
+          this.objectId = response.data.data
+          this.queryRates(this.objectId, 1)
+          this.$http.get("/api/queryTags", {params: {objectId: this.objectId}}).then((response) => {
+            this.log.push('获取标签统计...')
+            this.tagList = response.data.data
           })
-          this.$http.get("/queryRateTypeWeight", {params: {object: this.object}}).then((response) => {
-//            this.objectId = response.data.objectId
+          this.$http.get("/api/queryRateTypeWeight", {params: {objectId: this.objectId}}).then((response) => {
+            this.log.push('获取评论比重...')
+            this.$refs.rateWeight.show(response.data.data)
           })
-          this.$http.get("/queryLastSixMonth", {params: {object: this.object}}).then((response) => {
-//            this.objectId = response.data.objectId
+          this.$http.get("/api/queryLastSixMonth", {params: {objectId: this.objectId}}).then((response) => {
+            this.log.push('获取半年内评论种类统计...')
+            this.$refs.lastSix.show(response.data.data)
           })
-          this.$http.get("/queryRateTypeEveryDay", {params: {object: this.object}}).then((response) => {
-//            this.objectId = response.data.objectId
+          this.$http.get("/api/queryRateTypeEveryDay", {params: {objectId: this.objectId}}).then((response) => {
+            this.log.push('获取每日评论趋势...')
+            this.$refs.everyDay.show(response.data.data)
           })
-          this.$http.get("/queryObjectTypeWeight", {params: {object: this.object}}).then((response) => {
-//            this.objectId = response.data.objectId
+          const self = this
+          this.$http.get("/api/queryObjectTypeWeight", {params: {objectId: this.objectId}}).then((response) => {
+            this.log.push('获取商品分类统计...')
+            self.objectSkuList = response.data.data
+            this.objectTypeInterval = setInterval(this.flushObjectType, 3000)
           })
         })
       },
       queryRates(objectId, pageNum) {
-        this.$http.get("/queryRates", {params: {object: this.object, pageNum: pageNum}}).then((response) => {
-          this.objectId = response.data.objectId
+        this.$http.get("/api/queryRates", {params: {objectId: objectId, pageNum: pageNum}}).then((response) => {
+          this.tableLoading = false
+          this.rateList = response.data.data.rateList
+          this.pageMax = response.data.data.pageMax
+          this.log.push('获取第'+ pageNum + '页数据...')
         })
+      },
+      flushObjectType(){
+        try {
+          const self = this
+          this.objectSkuList.forEach(function (value, index, array) {
+            self.$refs['objectType' + index][0].show(value)
+          })
+          this.log.push('完成分类统计获取...')
+          clearInterval(this.objectTypeInterval)
+        } catch (e){
+          console.log('try')
+        }
       }
     }
   };

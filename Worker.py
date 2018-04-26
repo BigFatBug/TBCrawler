@@ -5,23 +5,19 @@ import json
 import requests
 import threading
 from datetime import datetime
-from RedisClient import RedisClient
-from MysqlClient import MysqlClient
 from MongoHandler import MongoHandler
 
 
 class Worker(threading.Thread):
-    def __init__(self, objectUrl, queryId):
+    def __init__(self, objectUrl):
         super(Worker, self).__init__()
         self.objectUrl = objectUrl
-        self.queryId = queryId
-        self.redisClient = RedisClient()
-        self.redisClient.connect()
-        self.session = MysqlClient().getSession()
+        self.objectId = None
         self.mongoHandler = MongoHandler()
 
     def run(self):
         objectId = self.getObjectId(self.objectUrl)
+        self.objectId = objectId
         self.getTags(objectId)
         self.getRate(objectId)
 
