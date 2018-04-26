@@ -45,8 +45,23 @@ class Query(object):
             sMonth = bMonth - timedelta(days=1)
 
     # 日评论比例曲线
-    def queryRateTypeEveryDay(self):
-        pass
+    def queryRateTypeEveryDay(self, objectId):
+        today = datetime.today()
+        resSum = self.mongoHandler.getAggregate('comment', [
+            {'$match': {'objectId': objectId, 'commentDate': {'$gte': (today - timedelta(days=100)).strftime('%Y-%m-%d'), '$lte': today.strftime('%Y-%m-%d')}}},
+            {'$group': {'_id': 'commentDate', 'count': {'$sum': 1}}}])
+
+        good = self.mongoHandler.getAggregate('comment', [
+            {'$match': {'objectId': objectId, 'rateType': 1, 'commentDate': {'$gte': (today - timedelta(days=100)).strftime('%Y-%m-%d'), '$lte': today.strftime('%Y-%m-%d')}}},
+            {'$group': {'_id': 'commentDate', 'count': {'$sum': 1}}}])
+
+        normal = self.mongoHandler.getAggregate('comment', [
+            {'$match': {'objectId': objectId, 'rateType': 0, 'commentDate': {'$gte': (today - timedelta(days=100)).strftime('%Y-%m-%d'), '$lte': today.strftime('%Y-%m-%d')}}},
+            {'$group': {'_id': 'commentDate', 'count': {'$sum': 1}}}])
+
+        bad = self.mongoHandler.getAggregate('comment', [
+            {'$match': {'objectId': objectId, 'rateType': -1, 'commentDate': {'$gte': (today - timedelta(days=100)).strftime('%Y-%m-%d'), '$lte': today.strftime('%Y-%m-%d')}}},
+            {'$group': {'_id': 'commentDate', 'count': {'$sum': 1}}}])
 
     # 商品分类比例
     def queryObjectTypeWeight(self):
