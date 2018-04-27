@@ -40,6 +40,10 @@
             itemStyle: {normal: {color: self.colorList[index % 11]}}
           })
         })
+        let titleList = data.titleList
+        if (titleList.length > 12){
+          titleList = []
+        }
         const option = {
           tooltip: {
             trigger: 'item',
@@ -48,7 +52,7 @@
           legend: {
             orient: 'vertical',
             left: 'right',
-            data: data.titleList
+            data: titleList
           },
           series: [
             {

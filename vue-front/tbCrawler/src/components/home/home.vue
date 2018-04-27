@@ -200,7 +200,7 @@
         <Card>
           <p slot="title" class="card-title">
             <Icon type="ios-pulse-strong"></Icon>
-            商品分类统计
+            {{objectSku.name}}统计
           </p>
           <div class="data-source-row">
             <user-flow :ref="'objectType' + index" :index="index" :data="objectSku"></user-flow>
