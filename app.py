@@ -10,9 +10,11 @@ app.debug = True
 @app.route('/start', methods=['GET'])
 def crawler():
     try:
+        start = time.time()
         objectUrl = request.args.get('objectUrl')
         worker = Worker(objectUrl)
         worker.run()
+        print(time.time() - start)
         return responseData(worker.objectId)
     except Exception as e:
         return responseData(None, -1, str(e))

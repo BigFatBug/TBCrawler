@@ -1,0 +1,29 @@
+@startuml
+scale 550 height
+
+cloud "客户端" {
+[web页面]
+[移动端页面]
+}
+
+package "服务端" {
+web页面 --> HTTP
+移动端页面 --> HTTP
+HTTP - [web server]
+[web server] - [业务处理层]
+}
+
+database "MongoDB" {
+    [业务处理层] --> [源数据]
+    [业务处理层] --> [解析结果]
+    [解析结果] --> [web server]
+    [源数据] --> [web server]
+    frame "解析结果" {
+        [Info]
+    }
+    frame "源数据" {
+        [Data]
+    }
+}
+
+@enduml

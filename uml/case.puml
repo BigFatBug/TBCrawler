@@ -1,0 +1,22 @@
+@startuml
+
+left to right direction
+skinparam packageStyle rectangle
+actor customer << Human >>
+actor Database << Application >>
+rectangle 客户端 {
+  customer -- (输入链接)
+  customer -- (确认提交)
+  customer -- (查看评论)
+  customer -- (查看分析)
+  (确认提交) .> (查看评论) : include
+  (输入链接) .> (确认提交) : include
+  (查看评论) .> (查看分析) : extends
+}
+rectangle 服务端 {
+  (写入评论) .> (查看评论) : include
+  (写入分析) .> (查看分析) : include
+  (写入评论) -- Database
+  (写入分析) -- Database
+}
+@enduml

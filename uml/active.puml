@@ -1,0 +1,27 @@
+@startuml
+start
+:输入商品链接;
+if (提取到商品id？) then (true)
+    if (是天猫商城？) then (true)
+      :组装天猫评论url;
+      repeat
+        :爬取评论;
+        :翻页;
+      repeat while (未爬完所有页且未命中缓存)
+        :评论分析;
+        :提示天猫评论规则;
+    else (false)
+      :组装淘宝评论url;
+      repeat
+        :爬取评论;
+        :翻页;
+      repeat while (未爬完所有页且未命中缓存)
+        :评论分析;
+    endif
+else (false)
+    :报错;
+endif
+:反馈到前端展示;
+stop
+
+@enduml

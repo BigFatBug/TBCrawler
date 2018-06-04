@@ -311,6 +311,12 @@
         this.log = ['开始爬取...']
         this.startLoading = true
         this.$http.get("/api/start", {params: {objectUrl: this.url}}).then((response) => {
+          if (response.data.status != 0){
+            this.log.push('发生异常')
+            this.log.push(response.data.msg)
+            this.startLoading = false
+            return
+          }
           this.log.push('后台发送爬取信号...')
           this.startLoading = false
           this.tableLoading = true

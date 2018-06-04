@@ -17,12 +17,17 @@ class Worker(threading.Thread):
 
     def run(self):
         objectId = self.getObjectId(self.objectUrl)
+        if not objectId:
+            raise Exception('商品Id解析失败')
         self.objectId = objectId
         self.getTags(objectId)
         self.getRate(objectId)
 
     def getObjectId(self, objectUrl):
-        return re.match('.*[&\?]id=([0-9]+)', objectUrl).groups()[0]
+        try:
+            return re.match('.*[&\?]id=([0-9]+)', objectUrl).groups()[0]
+        except Exception:
+            raise Exception('商品Id解析失败')
 
     def getJson(self, data):
         return re.search('{.*}', data).group()
@@ -45,6 +50,8 @@ class Worker(threading.Thread):
         res = {}
         tagUrl = 'https://rate.taobao.com/detailCommon.htm?auctionNumId={0}'
         r = requests.get(tagUrl.format(objectId))
+        if not r.status_code == 200:
+            raise Exception('HTTP错误。状态码为' + r.status_code)
         aa = self.getJson(r.text)
         ss = json.loads(self.getJson(aa))
         res['tags'] = ss['data']['impress']
@@ -92,6 +99,8 @@ class Worker(threading.Thread):
         finish = False
         while pageNum <= pageMax:
             r = requests.get(rateUrl.format(objectId, pageNum))
+            if not r.status_code == 200:
+                raise Exception('HTTP错误。状态码为' + r.status_code)
             aa = self.getJson(r.text)
             ss = json.loads(self.getJson(aa))
             if total == -1:
@@ -101,7 +110,10 @@ class Worker(threading.Thread):
                 pageMax = (total - 1) // 20 + 1
                 self.mongoHandler.update('info', 'objectId', objectId, {'total' :total, 'pageMax': pageMax})
 
-            for comment in ss['comments']:
+            if not ss.get('comments'):
+                pass
+                aaa = 1
+            for comment in ss.get('comments') or []:
                 if total - i <= maxIndex:
                     finish = True
                     break

@@ -1,0 +1,39 @@
+@startuml
+artifact 页面 {
+  folder UI组件{
+    node Iview
+  }
+  folder 逻辑层{
+    node vue.js
+  }
+  folder 部署环境{
+    node nginx
+    node webpack
+    node npm
+  }
+}
+
+folder 服务端 {
+  folder 分析层{
+    node xpath
+    node 正则表达式
+  }
+  folder WebServer{
+    node flask
+    node pymongo
+  }
+
+}
+
+database 数据层 {
+  database MongoDB
+}
+
+vue.js - Iview
+webpack - nginx
+pymongo - flask
+npm - webpack
+vue.js - nginx
+nginx --0-- flask
+pymongo --0- 数据层
+@enduml
