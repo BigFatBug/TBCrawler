@@ -15,7 +15,7 @@ def crawler():
         worker = Worker(objectUrl)
         worker.run()
         print(time.time() - start)
-        return responseData(worker.objectId)
+        return responseData({'objectId': worker.objectId, 'queryId': worker.queryId })
     except Exception as e:
         return responseData(None, -1, str(e))
 

@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+import time
 import re
 import json
 import requests
@@ -13,13 +14,18 @@ class Worker(threading.Thread):
         super(Worker, self).__init__()
         self.objectUrl = objectUrl
         self.objectId = None
+        self.queryId = int(time.time())
         self.mongoHandler = MongoHandler()
+        self.mongoHandler.update('status', 'queryId', self.queryId, {'queryId': self.queryId, 'status': 0, 'msg': '开始工作'})
 
     def run(self):
         objectId = self.getObjectId(self.objectUrl)
         if not objectId:
+            self.mongoHandler.update('status', 'queryId', self.queryId, {'queryId': self.queryId, 'status': 1, 'msg': '商品id解析失败'})
             raise Exception('商品Id解析失败')
         self.objectId = objectId
+        self.mongoHandler.update('status', 'queryId', self.queryId,
+                                 {'queryId': self.queryId, 'status': 2, 'msg': '商品id解析完成'})
         self.getTags(objectId)
         self.getRate(objectId)
 
@@ -110,9 +116,6 @@ class Worker(threading.Thread):
                 pageMax = (total - 1) // 20 + 1
                 self.mongoHandler.update('info', 'objectId', objectId, {'total' :total, 'pageMax': pageMax})
 
-            if not ss.get('comments'):
-                pass
-                aaa = 1
             for comment in ss.get('comments') or []:
                 if total - i <= maxIndex:
                     finish = True
@@ -144,10 +147,20 @@ class Worker(threading.Thread):
                 }
                 self.mongoHandler.insertComment(commentModel)
                 i += 1
+                if i % 3000 == 0:
+                    self.mongoHandler.update('status', 'queryId', self.queryId,
+                                             {'queryId': self.queryId, 'status': 3, 'msg': '已抓取第%s条评论' % i})
+
             if finish:
                 break
+
+            if pageNum == 1:
+                self.mongoHandler.update('status', 'queryId', self.queryId,
+                                         {'queryId': self.queryId, 'status': 3, 'msg': '已抓取第一页评论'})
             pageNum += 1
         self.mongoHandler.update('info', 'objectId', objectId, {'sku' :sku})
+        self.mongoHandler.update('status', 'queryId', self.queryId,
+                                 {'queryId': self.queryId, 'status': 4, 'msg': '完成评论抓取'})
 
 
 if __name__ == '__main__':
