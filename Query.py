@@ -10,13 +10,18 @@ class Query(object):
     def __init__(self):
         self.mongoHandler = MongoHandler()
 
-    def queryStatus(self):
-        pass
+    def queryObjectId(self, queryId):
+        return self.mongoHandler.getData('status', {'queryId': queryId})['objectId']
+
+
+    def queryStatus(self, queryId):
+        return self.mongoHandler.getData('status', {'queryId': queryId})
 
     # 评论列表
-    def queryRates(self, objectId, pageNum):
+    def queryRates(self, queryId, pageNum):
         # while 1:
         #     try:
+        objectId = self.queryObjectId(queryId)
         total = self.mongoHandler.getData('info', {'objectId': objectId})['total']
         pageMax = self.mongoHandler.getData('info', {'objectId': objectId})['pageMax']
         indexRange = (total - (pageNum - 1) * 20, total - pageNum * 20)
@@ -28,27 +33,30 @@ class Query(object):
         return {'total': total, 'pageMax': pageMax, 'rateList': rateList}
 
     # 标签数
-    def queryTags(self, objectId):
+    def queryTags(self, queryId):
         while 1:
             try:
+                objectId = self.queryObjectId(queryId)
                 return self.mongoHandler.getData('info', {'objectId': objectId})['tags']
             except Exception:
                 time.sleep(2)
 
     # 评论种类占比
-    def queryRateTypeWeight(self, objectId):
+    def queryRateTypeWeight(self, queryId):
         while 1:
             try:
+                objectId = self.queryObjectId(queryId)
                 return self.mongoHandler.getData('info', {'objectId': objectId})['count']
             except Exception:
                 time.sleep(2)
 
     # 前六个月评论比
-    def queryLastSixMonth(self, objectId):
+    def queryLastSixMonth(self, queryId):
         '''
         db.getCollection('comment').aggregate([{'$match': {'commentDate': {'$gte': '2017-01-01', '$lt': '2018-03-01'}}},
                                                {'$group': {'_id': '$rateType', 'count': {'$sum': 1}}}])
         '''
+        objectId = self.queryObjectId(queryId)
         sMonth = datetime.today()
         bMonth = datetime(sMonth.year, sMonth.month, calendar.monthrange(sMonth.year, sMonth.month)[1]) + timedelta(
             days=1)
@@ -83,8 +91,9 @@ class Query(object):
         return res
 
     # 日评论比例曲线
-    def queryRateTypeEveryDay(self, objectId):
+    def queryRateTypeEveryDay(self, queryId):
         today = datetime.today()
+        objectId = self.queryObjectId(queryId)
         res = {
             'dayList': [],
             'badList': [],
@@ -129,7 +138,8 @@ class Query(object):
         return res
 
     # 商品分类比例
-    def queryObjectTypeWeight(self, objectId):
+    def queryObjectTypeWeight(self, queryId):
+        objectId = self.queryObjectId(queryId)
         res = []
         sku = self.mongoHandler.getData('info', {'objectId': objectId})['sku']
         for k, v in sku.items():

@@ -299,19 +299,16 @@
         ],
         url: '',
         objectId: '',
-        queryId: null,
         tagList: [],
         rateList: [],
         objectSkuList: [],
         objectTypeInterval: null,
-        queryInterval: null,
-        status1Done : false,
-        status3Done: false,
         pageMax: 0
       };
     },
     methods: {
       start() {
+        this.log = ['开始爬取...']
         this.startLoading = true
         this.$http.get("/api/start", {params: {objectUrl: this.url}}).then((response) => {
           if (response.data.status != 0){
@@ -320,50 +317,33 @@
             this.startLoading = false
             return
           }
-          this.queryId = response.data.data
-          this.queryInterval = setInterval(this.query, 5000)
-        })
-      },
-      query(){
-        this.$http.get('/api/queryStatus', {params: {queryId: this.queryId}}).then((response) =>{
-          let data = response.data.data
-          this.log = data.msg
-          if (data.status >= 1){
-            if (!this.status1Done){
-              this.$http.get("/api/queryTags", {params: {queryId: this.queryId}}).then((response) => {
-                this.tagList = response.data.data
-              })
-              this.status1Done = true
-            }
-          }
-          if (data.status >= 3){
-            if (!this.status3Done){
-              this.queryRates(this.objectId, 1)
-              this.status3Done = true
-            }
-          }
-          if (data.status >= 5){
-            this.$http.get("/api/queryRateTypeWeight", {params: {queryId: this.queryId}}).then((response) => {
-              this.log.push('获取评论比重...')
-              this.$refs.rateWeight.show(response.data.data)
-            })
-            this.$http.get("/api/queryLastSixMonth", {params: {queryId: this.queryId}}).then((response) => {
-              this.log.push('获取半年内评论种类统计...')
-              this.$refs.lastSix.show(response.data.data)
-            })
-            this.$http.get("/api/queryRateTypeEveryDay", {params: {queryId: this.queryId}}).then((response) => {
-              this.log.push('获取每日评论趋势...')
-              this.$refs.everyDay.show(response.data.data)
-            })
-            const self = this
-            this.$http.get("/api/queryObjectTypeWeight", {params: {queryId: this.queryId}}).then((response) => {
-              this.log.push('获取商品分类统计...')
-              self.objectSkuList = response.data.data
-              this.objectTypeInterval = setInterval(this.flushObjectType, 3000)
-            })
-            clearInterval(this.queryInterval)
-            this.startLoading = false
-          }
+          this.log.push('后台发送爬取信号...')
+          this.startLoading = false
+          this.tableLoading = true
+          this.objectId = response.data.data
+          this.queryRates(this.objectId, 1)
+          this.$http.get("/api/queryTags", {params: {objectId: this.objectId}}).then((response) => {
+            this.log.push('获取标签统计...')
+            this.tagList = response.data.data
+          })
+          this.$http.get("/api/queryRateTypeWeight", {params: {objectId: this.objectId}}).then((response) => {
+            this.log.push('获取评论比重...')
+            this.$refs.rateWeight.show(response.data.data)
+          })
+          this.$http.get("/api/queryLastSixMonth", {params: {objectId: this.objectId}}).then((response) => {
+            this.log.push('获取半年内评论种类统计...')
+            this.$refs.lastSix.show(response.data.data)
+          })
+          this.$http.get("/api/queryRateTypeEveryDay", {params: {objectId: this.objectId}}).then((response) => {
+            this.log.push('获取每日评论趋势...')
+            this.$refs.everyDay.show(response.data.data)
+          })
+          const self = this
+          this.$http.get("/api/queryObjectTypeWeight", {params: {objectId: this.objectId}}).then((response) => {
+            this.log.push('获取商品分类统计...')
+            self.objectSkuList = response.data.data
+            this.objectTypeInterval = setInterval(this.flushObjectType, 3000)
+          })
         })
       },
       queryRates(objectId, pageNum) {
@@ -371,6 +351,7 @@
           this.tableLoading = false
           this.rateList = response.data.data.rateList
           this.pageMax = response.data.data.pageMax
+          this.log.push('获取第'+ pageNum + '页数据...')
         })
       },
       flushObjectType(){

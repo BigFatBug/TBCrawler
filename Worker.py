@@ -7,33 +7,39 @@ import requests
 import threading
 from datetime import datetime
 from MongoHandler import MongoHandler
+from multiprocessing import Process
 
 
-class Worker(threading.Thread):
+class Worker(Process):
     def __init__(self, objectUrl):
         super(Worker, self).__init__()
         self.objectUrl = objectUrl
         self.objectId = None
         self.queryId = int(time.time())
         self.mongoHandler = MongoHandler()
-        self.mongoHandler.update('status', 'queryId', self.queryId, {'queryId': self.queryId, 'status': 0, 'msg': '开始工作'})
+        self.mongoHandler.update('status', 'queryId', self.queryId, {'queryId': self.queryId, 'status': 0, 'msg': ['开始工作']})
 
     def run(self):
         objectId = self.getObjectId(self.objectUrl)
         if not objectId:
-            self.mongoHandler.update('status', 'queryId', self.queryId, {'queryId': self.queryId, 'status': 1, 'msg': '商品id解析失败'})
+            msg = self.mongoHandler.getData('status', {'queryId': self.queryId})['msg']
+            msg.append('商品id解析失败')
+            print (msg)
+            self.mongoHandler.update('status', 'queryId', self.queryId, {'queryId': self.queryId, 'status': -1, 'msg': msg})
             raise Exception('商品Id解析失败')
         self.objectId = objectId
-        self.mongoHandler.update('status', 'queryId', self.queryId,
-                                 {'queryId': self.queryId, 'status': 2, 'msg': '商品id解析完成'})
         self.getTags(objectId)
+        msg = self.mongoHandler.getData('status', {'queryId': self.queryId})['msg']
+        msg.append('商品标签与id解析完成')
+        print (msg)
+        self.mongoHandler.update('status', 'queryId', self.queryId, {'queryId': self.queryId, 'objectId': objectId, 'status': 1, 'msg': msg})
         self.getRate(objectId)
 
     def getObjectId(self, objectUrl):
         try:
             return re.match('.*[&\?]id=([0-9]+)', objectUrl).groups()[0]
         except Exception:
-            raise Exception('商品Id解析失败')
+            return None
 
     def getJson(self, data):
         return re.search('{.*}', data).group()
@@ -148,19 +154,26 @@ class Worker(threading.Thread):
                 self.mongoHandler.insertComment(commentModel)
                 i += 1
                 if i % 3000 == 0:
-                    self.mongoHandler.update('status', 'queryId', self.queryId,
-                                             {'queryId': self.queryId, 'status': 3, 'msg': '已抓取第%s条评论' % i})
-
+                    msg = self.mongoHandler.getData('status', {'queryId': self.queryId})['msg']
+                    msg.append('已抓取前%s条评论' % i)
+                    print(msg)
+                    self.mongoHandler.update('status', 'queryId', self.queryId, {'queryId': self.queryId, 'status': 3, 'msg': msg})
             if finish:
                 break
 
             if pageNum == 1:
+                msg = self.mongoHandler.getData('status', {'queryId': self.queryId})['msg']
+                msg.append('已抓取第一页评论')
+                print(msg)
                 self.mongoHandler.update('status', 'queryId', self.queryId,
-                                         {'queryId': self.queryId, 'status': 3, 'msg': '已抓取第一页评论'})
+                                         {'queryId': self.queryId, 'status': 3, 'msg': msg})
             pageNum += 1
-        self.mongoHandler.update('info', 'objectId', objectId, {'sku' :sku})
+        self.mongoHandler.update('info', 'objectId', objectId, {'sku': sku})
+        msg = self.mongoHandler.getData('status', {'queryId': self.queryId})['msg']
+        msg.append('完成评论抓取')
+        print(msg)
         self.mongoHandler.update('status', 'queryId', self.queryId,
-                                 {'queryId': self.queryId, 'status': 4, 'msg': '完成评论抓取'})
+                                 {'queryId': self.queryId, 'status': 5, 'msg': msg})
 
 
 if __name__ == '__main__':

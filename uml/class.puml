@@ -1,0 +1,76 @@
+@startuml
+
+Flask <|-- Application
+Thread <|-- Worker
+Application -- Worker
+Application -- Query
+MongoHandler -- Worker
+MongoHandler -- Query
+abstract class Flask{
+    run()
+}
+
+abstract class Thread{
+    run()
+    start()
+}
+
+class Application {
+start()
+queryRates()
+queryTags()
+queryRateTypeWeight()
+queryLastSixMonth()
+queryRateTypeEveryDay()
+queryObjectTypeWeight()
+}
+
+class Query {
+mongoHandler: MongoHandler
+queryStatus(queryId)
+queryRate(objectId, pageNum)
+queryTags(objectId)
+queryRateTypeWeight(objectId)
+queryLastSixMonth(objectId)
+queryRateTypeEveryDay(objectId)
+queryObjectTypeWeight(objectId)
+}
+
+class MongoHandler {
+statusDic: dict
+commentModel: dict
+client: MongoClient
+getDb(db)
+getCollection(collection, db)
+getCommentSize(objectId)
+getData(collectionName, filterRow)
+getDatas(collectionName, filterRow)
+getMaxIndex(collectionName)
+getAggregate(collectionName, filterRow)
+update(collectionName, key, value,  updateRow)
+updateStatus(status, queryId)
+insertComment(row)
+}
+
+class Worker {
+objectUrl: dict
+objectId: dict
+mongoHandler: MongoHandler
+run()
+getObjectId(objectUrl)
+getJson(data)
+getRate(objectId)
+getTags(objectId)
+}
+
+enum QueryStatus {
+BEGIN
+PROCESSING
+FINISHED_FIRST_PAGE
+FINISHED
+FAILED
+getById(id)
+getByDesc(desc)
+}
+
+@enduml

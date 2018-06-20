@@ -13,20 +13,31 @@ def crawler():
         start = time.time()
         objectUrl = request.args.get('objectUrl')
         worker = Worker(objectUrl)
-        worker.run()
+        worker.start()
         print(time.time() - start)
-        return responseData({'objectId': worker.objectId, 'queryId': worker.queryId })
+        return responseData(worker.queryId)
     except Exception as e:
         return responseData(None, -1, str(e))
 
+@app.route('/queryStatus', methods=['GET'])
+def queryStatus():
+    try:
+        queryId = request.args.get('queryId')
+        queryId = int(queryId)
+        q = Query()
+        res = q.queryStatus(queryId)
+        return responseData(res)
+    except Exception as e:
+        return responseData(None, -1, str(e))
 
 @app.route('/queryRates', methods=['GET'])
 def queryRates():
     try:
-        objectId = request.args.get('objectId')
+        queryId = request.args.get('queryId')
+        queryId = int(queryId)
         pageNum = request.args.get('pageNum')
         q = Query()
-        res = q.queryRates(objectId, int(pageNum))
+        res = q.queryRates(queryId, int(pageNum))
         return responseData(res)
     except Exception as e:
         return responseData(None, -1, str(e))
@@ -35,9 +46,10 @@ def queryRates():
 @app.route('/queryTags', methods=['GET'])
 def queryTags():
     try:
-        objectId = request.args.get('objectId')
+        queryId = request.args.get('queryId')
+        queryId = int(queryId)
         q = Query()
-        res = q.queryTags(objectId)
+        res = q.queryTags(queryId)
         return responseData(res)
     except Exception as e:
         return responseData(None, -1, str(e))
@@ -46,9 +58,10 @@ def queryTags():
 @app.route('/queryRateTypeWeight', methods=['GET'])
 def queryRateTypeWeight():
     try:
-        objectId = request.args.get('objectId')
+        queryId = request.args.get('queryId')
+        queryId = int(queryId)
         q = Query()
-        res = q.queryRateTypeWeight(objectId)
+        res = q.queryRateTypeWeight(queryId)
         return responseData(res)
     except Exception as e:
         return responseData(None, -1, str(e))
@@ -57,9 +70,10 @@ def queryRateTypeWeight():
 @app.route('/queryLastSixMonth', methods=['GET'])
 def queryLastSixMonth():
     try:
-        objectId = request.args.get('objectId')
+        queryId = request.args.get('queryId')
+        queryId = int(queryId)
         q = Query()
-        res = q.queryLastSixMonth(objectId)
+        res = q.queryLastSixMonth(queryId)
         return responseData(res)
     except Exception as e:
         return responseData(None, -1, str(e))
@@ -67,9 +81,10 @@ def queryLastSixMonth():
 @app.route('/queryRateTypeEveryDay', methods=['GET'])
 def queryRateTypeEveryDay():
     try:
-        objectId = request.args.get('objectId')
+        queryId = request.args.get('queryId')
+        queryId = int(queryId)
         q = Query()
-        res = q.queryRateTypeEveryDay(objectId)
+        res = q.queryRateTypeEveryDay(queryId)
         return responseData(res)
     except Exception as e:
         return responseData(None, -1, str(e))
@@ -78,9 +93,10 @@ def queryRateTypeEveryDay():
 @app.route('/queryObjectTypeWeight', methods=['GET'])
 def queryObjectTypeWeight():
     try:
-        objectId = request.args.get('objectId')
+        queryId = request.args.get('queryId')
+        queryId = int(queryId)
         q = Query()
-        res = q.queryObjectTypeWeight(objectId)
+        res = q.queryObjectTypeWeight(queryId)
         return responseData(res)
     except Exception as e:
         return responseData(None, -1, str(e))
